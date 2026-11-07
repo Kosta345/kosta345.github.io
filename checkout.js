@@ -1,0 +1,12 @@
+const params = new URLSearchParams(location.search);
+const plan = params.get('plano') === 'completo' ? 'completo' : 'basico';
+const plans = {basico:{title:'Mapa Fácil da Reforma Tributária',description:'Plano Básico • Material digital em PDF',price:'R$ 27,90'},completo:{title:'Mapa Fácil da Reforma Tributária + 8 bônus',description:'Plano Completo • Material digital e 8 bônus',price:'R$ 37,90'}};
+const chosen=plans[plan];
+document.getElementById('planTitle').textContent=chosen.title;
+document.getElementById('planDesc').textContent=chosen.description;
+document.getElementById('subtotal').textContent=chosen.price;
+document.getElementById('total').textContent=chosen.price;
+const methods=document.querySelectorAll('.method');
+methods.forEach(el=>el.addEventListener('change',()=>{methods.forEach(x=>x.classList.toggle('selected',x.querySelector('input').checked));document.getElementById('paymentNote').textContent=document.querySelector('input[name=method]:checked').value==='pix'?'O Pix será gerado pelo provedor de pagamento após a integração.':'O cartão será processado em ambiente seguro do provedor após a integração.'}));
+const form=document.getElementById('purchase');
+form.addEventListener('submit',e=>{e.preventDefault();const feedback=document.getElementById('feedback');feedback.textContent='';if(!form.reportValidity())return;const digits=s=>s.replace(/\D/g,'');const doc=digits(form.elements.document.value);const phone=digits(form.elements.phone.value);if(![11,14].includes(doc.length)){feedback.textContent='Informe um CPF ou CNPJ com a quantidade correta de dígitos.';return}if(phone.length<10||phone.length>13){feedback.textContent='Informe um WhatsApp válido com DDD.';return}feedback.textContent='O formulário está pronto, mas os pagamentos ainda não estão ativados. Falta conectar o checkout oficial da Cakto. Nenhuma cobrança foi realizada.';});
