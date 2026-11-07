@@ -1,0 +1,2 @@
+import {cakto,send} from '../lib/cakto.js';
+export default async function handler(req,res){if(req.method!=='GET')return send(res,405,{error:'Método não permitido'});const id=String(req.query?.id||'');if(!/^[a-f\d-]{36}$/i.test(id))return send(res,400,{error:'Pedido inválido'});try{const result=await cakto(`/orders/${encodeURIComponent(id)}/`);if(!result.ok)return send(res,502,{error:'Não foi possível consultar o pedido'});return send(res,200,{status:result.body.status,paid:result.body.status==='paid'});}catch(e){return send(res,502,{error:'Falha ao consultar pedido'})}}
