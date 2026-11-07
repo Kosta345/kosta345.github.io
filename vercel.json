@@ -1,1 +1,50 @@
-{"functions":{"api/*.js":{"maxDuration":30}},"headers":[{"source":"/checkout.html","headers":[{"key":"Cache-Control","value":"no-store"}]}]}
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "checkout.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "checkout.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "script.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "styles.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "checkout.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "mapa-facil-produto.jpg",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    }
+  ]
+}

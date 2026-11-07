@@ -26,3 +26,9 @@ Esta versão mantém a página de vendas e o checkout personalizado. Inclui rota
 - Se a conta Cakto ainda estiver em validação cadastral, cobranças diretas podem ser bloqueadas.
 
 Documentação: https://docs.cakto.com.br/authentication.md · https://docs.cakto.com.br/api-reference/payments/create-pix.md · https://docs.cakto.com.br/api-reference/payments/create-card.md · https://docs.cakto.com.br/conceitos/webhooks.md
+
+
+## Versão para GitHub mobile — tudo na raiz
+Envie todos os arquivos diretamente na raiz do repositório. O backend está concentrado em `backend.js`; `vercel.json` faz as rotas `/api/*` apontarem para ele. Esta versão usa o sistema de builds legados da Vercel (`@vercel/node` + `@vercel/static`). Não envie as pastas antigas `api/` ou `lib/`.
+
+Ainda é necessário configurar `CAKTO_OFFER_ID_BASICO` com o ID da oferta (não apenas URL), `CAKTO_WEBHOOK_SECRET` para notificações e testar o deploy antes de vender. O webhook ainda não entrega o PDF automaticamente.
