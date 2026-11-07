@@ -32,3 +32,7 @@ Documentação: https://docs.cakto.com.br/authentication.md · https://docs.cakt
 Envie todos os arquivos diretamente na raiz do repositório. O backend está concentrado em `backend.js`; `vercel.json` faz as rotas `/api/*` apontarem para ele. Esta versão usa o sistema de builds legados da Vercel (`@vercel/node` + `@vercel/static`). Não envie as pastas antigas `api/` ou `lib/`.
 
 Ainda é necessário configurar `CAKTO_OFFER_ID_BASICO` com o ID da oferta (não apenas URL), `CAKTO_WEBHOOK_SECRET` para notificações e testar o deploy antes de vender. O webhook ainda não entrega o PDF automaticamente.
+
+
+## Atualização visual Premium
+Substitua `checkout.html`, `checkout.css` e `checkout.js` pelos novos arquivos na raiz do GitHub. Mantenha `backend.js`, `vercel.json`, `index.html`, `styles.css`, `script.js` e `mapa-facil-produto.jpg` na mesma raiz. O backend foi preservado. A cobrança Pix é real quando a oferta e credenciais estão corretamente configuradas. A entrega automática do PDF ainda precisa ser implementada. O QR Code usa biblioteca carregada de CDN; se ela falhar, o código copia e cola permanece disponível.
