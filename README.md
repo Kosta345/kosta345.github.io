@@ -1,29 +1,28 @@
-# Mapa Fácil — Upgrade Premium
+# Mapa Fácil — integração Cakto (etapa técnica)
 
-Versão baseada no site com textos ajustados. Preserva todas as seções e a imagem original do produto.
+Esta versão mantém a página de vendas e o checkout personalizado. Inclui rotas serverless da Vercel para criar cobrança Pix e cartão, consultar pedido e validar a assinatura de webhooks.
 
-## Como publicar
+## Antes de ativar cobranças
 
-Extraia o ZIP e publique o conteúdo desta pasta no Netlify (ou abra `index.html` localmente). Para atualizar o site existente no Netlify, envie a pasta inteira novamente.
+1. Na Cakto, abra **Produtos > sua oferta de R$ 27,90** e copie o **ID/short_id da oferta**. O endereço `https://pay.cakto.com.br/3eidzea_1292287` identifica um checkout, mas NÃO confirma por si só qual é o `offerId` aceito pela API. Não invente nem copie o sufixo do URL como se fosse o ID da oferta.
+2. Na Vercel > Settings > Environment Variables, configure em **Production**:
+   - `CAKTO_CLIENT_ID` (já cadastrada)
+   - `CAKTO_CLIENT_SECRET` (já cadastrada)
+   - `CAKTO_OFFER_ID_BASICO` = ID da oferta de R$ 27,90 (a confirmar)
+   - `CAKTO_WEBHOOK_SECRET` = segredo do webhook criado na Cakto (a configurar)
+   - `CAKTO_ENABLE_CARD` = `true` **somente depois de testar o SDK e o antifraude**. Sem isso o cartão fica desabilitado de propósito.
+   - `CAKTO_OFFER_ID_COMPLETO` = ID da oferta de R$ 37,90, **somente se existir e estiver ativa**. Até lá o plano completo não cobra.
+3. Crie um webhook na Cakto para `https://SEU-DOMINIO.vercel.app/api/webhook`, evento `purchase_approved`, e use o segredo gerado na variável acima. A assinatura HMAC e o timestamp são validados no servidor.
+4. Faça um **novo deploy** após cadastrar as variáveis. Teste primeiro com a sua própria compra e confira o valor, QR Code, pedido, status e recebimento do webhook.
+5. **A entrega automática do PDF ainda não está implementada.** O webhook apenas valida e registra o ID do pedido no log. Não coloque o PDF pago na pasta pública; para entrega segura será necessário armazenamento privado + banco de dados + deduplicação de eventos + envio autenticado por e-mail ou link temporário. O checkout avisa que a entrega depende da configuração.
 
-## Links de pagamento
+## Observações importantes
 
-Edite `script.js` e preencha `CHECKOUT_LINKS.basico` e `CHECKOUT_LINKS.completo` com os links reais. Sem eles, os botões de checkout avisam que falta configuração.
+- Pix usa `POST /public_api/payments/`, OAuth2 e `X-Idempotency-Key`. QR Code gerado no navegador a partir do BR Code devolvido pela Cakto.
+- Cartão usa SDK oficial para tokenização no navegador, antifraude e `cardToken` no backend; **não** armazene nem registre número ou CVV no servidor. Para produção, considere fluxo 3DS e testes de risco/chargeback.
+- O preço é conferido **no backend** contra R$ 27,90 para básico e R$ 37,90 para completo. A oferta precisa ter o valor correto na Cakto.
+- O endpoint de consulta de pedido usa ID não previsível; em produção, associe a consulta a uma sessão de compra para impedir acesso não autorizado a estados de pedidos.
+- O checkout hospedado Cakto não é usado para redirecionar o cliente.
+- Se a conta Cakto ainda estiver em validação cadastral, cobranças diretas podem ser bloqueadas.
 
-## Melhorias
-
-- Produto com animação suave de flutuação, luz ambiente verde/azul e brilho periódico.
-- Vitrine da imagem na seção de conteúdo com halo sutil.
-- Botões com reflexo e interações.
-- Cards e preços com estados de hover em dispositivos compatíveis.
-- Respeito à configuração de movimento reduzido para acessibilidade.
-- Mantida a tipografia da versão que você aprovou.
-
-Não inclui métricas ou depoimentos inventados. Não garante resultados comerciais.
-
-## Estrutura da etapa 1
-A imagem `mapa-facil-produto.jpg` fica na raiz, ao lado do `index.html`.
-As duas referências no HTML usam `src="mapa-facil-produto.jpg"`.
-
-## Checkout personalizado (protótipo seguro)
-A página `checkout.html` apresenta dados pessoais, Pix e cartão, com resumo dos planos. Os botões do site levam ao checkout local. **Ainda não processa pagamentos reais**: falta verificar os endpoints e a autorização da Cakto e conectar uma integração oficial no servidor. Não coloque `CAKTO_CLIENT_SECRET` em HTML/JS público. As variáveis cadastradas na Vercel só ficam acessíveis a código de servidor, não ao site estático. Para ativar pagamentos, configure checkout hospedado oficial ou funções serverless e webhooks com verificação de assinatura, conforme documentação da Cakto.
+Documentação: https://docs.cakto.com.br/authentication.md · https://docs.cakto.com.br/api-reference/payments/create-pix.md · https://docs.cakto.com.br/api-reference/payments/create-card.md · https://docs.cakto.com.br/conceitos/webhooks.md
