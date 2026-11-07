@@ -28,6 +28,11 @@ async function payHandler(req,res){
  if(typeof name!=='string'||name.trim().length<3||name.length>255||typeof email!=='string'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||!validDoc(doc)||!(tel.length===10||tel.length===11)||typeof fingerprint!=='string'||fingerprint.length<8||fingerprint.length>128)return send(res,400,{error:'Confira nome, e-mail, CPF/CNPJ e WhatsApp.'});
  if(!['pix','card'].includes(method))return send(res,400,{error:'Forma de pagamento inválida.'});
  if(typeof idempotencyKey!=='string'||!/^[a-f0-9-]{36}$/i.test(idempotencyKey))return send(res,400,{error:'Identificador da tentativa inválido.'});
+ // Confere oferta antes de gerar cobrança.
+ const check=await cakto(`/offers/${encodeURIComponent(offerId)}/`);
+ if(!check.ok)return send(res,502,{error:'Não foi possível verificar a oferta; nenhuma cobrança criada.'});
+ const offer=check.body;
+ if(offer.id!==offerId||offer.status!=='active'||offer.type!=='unique'||offer.currency!=='BRL'||!Number.isFinite(Number(offer.price))||Math.abs(Number(offer.price)-expected)>0.009)return send(res,409,{error:'Preço ou configuração da oferta incorretos; nenhuma cobrança criada.'});
  const payload={paymentMethod:method==='pix'?'pix':'credit_card',customer:{name:name.trim(),email:email.trim(),phone:`55${tel}`,fingerprint,docType:doc.length===11?'cpf':'cnpj',docNumber:doc},items:[{offerId,quantity:1,offerType:'main'}]};
  if(method==='card'){
   if(process.env.CAKTO_ENABLE_CARD!=='true')return send(res,503,{error:'Pagamento por cartão ainda não habilitado.'});
@@ -38,7 +43,7 @@ async function payHandler(req,res){
  if(!result.ok){console.error('Cakto cobrança erro HTTP',result.status);return send(res,result.status===403?403:502,{error:result.status===403?'Chave Cakto sem permissão de pagamento.':'Não foi possível criar a cobrança. Confira a oferta e tente novamente.',code:result.status});}
  const p=result.body;
  if(p.offer?.id && p.offer.id!==offerId)return send(res,502,{error:'Oferta retornada não corresponde à configurada.'});
- if(!Number.isFinite(Number(p.amount))||Math.abs(Number(p.amount)-expected)>0.009)return send(res,502,{error:'Valor da oferta diverge do valor anunciado. Cobrança não deve ser utilizada; procure o suporte.',orderId:p.id});
+ if(!Number.isFinite(Number(p.amount))||Number(p.amount)<expected-0.009)return send(res,502,{error:'Cobrança criada com total inesperado. Não pague antes de confirmar com o suporte.',orderId:p.id});
  return send(res,200,{id:p.id,refId:p.refId,status:p.status,amount:p.amount,pix:method==='pix'?{qrCode:p.pix?.qrCode||null,expirationDate:p.pix?.expirationDate||null}:null});
  }catch(e){console.error('Erro no pagamento:',e.message);return send(res,502,{error:'Serviço de pagamento temporariamente indisponível.'})}
 }
